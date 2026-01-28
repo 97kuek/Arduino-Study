@@ -1,0 +1,26 @@
+# Arduino IDE
+.arduino15/
+.built/
+build/
+*.ino.cpp
+*.ino.hex
+*.ino.elf
+*.ino.bin
+*.ino.map
+
+# Object files and libraries
+*.o
+*.a
+*.so
+
+# OS Specific
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# VS Code
+.vscode/
