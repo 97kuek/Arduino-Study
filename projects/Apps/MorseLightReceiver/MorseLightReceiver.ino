@@ -1,40 +1,23 @@
-/*
- * Morse Light Receiver (LCD1602 Version)
- * 
- * 光センサー(A0)への入力を監視し、モールス信号を解読して
- * LCD1602 (パラレル接続) に文字を表示するプログラム。
- * 
- * 必要なライブラリ:
- * - LiquidCrystal (Arduino標準)
- */
-
 #include <LiquidCrystal.h>
 
-// --- 定数定義 ---
-
-// ハードウェア設定
-#define SENSOR_PIN A0
-
-// LCDピン設定: RS, E, D4, D5, D6, D7
+#define SENSOR_PIN A0                            // 光センサー
 const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
 // 信号判定パラメータ (環境に合わせて調整が必要)
-const int LIGHT_THRESHOLD = 500; // この値を超えたらONとみなす (0-1023)
+const int LIGHT_THRESHOLD = 500;                 // この値を超えたらONとみなす
 
-// 時間パラメータ (ミリ秒) - Tinkercad手動操作用にかなり緩く設定
+// 時間パラメータ
 const unsigned long DOT_DURATION_MAX = 600;      // これ以下なら短点(.)
-const unsigned long DASH_DURATION_MIN = 600;    // これ以上なら長点(-)
+const unsigned long DASH_DURATION_MIN = 600;     // これ以上なら長点(-)
 const unsigned long CHAR_GAP_MIN = 1500;         // 文字区切りとみなすOFF時間
 const unsigned long WORD_GAP_MIN = 3000;         // 単語区切り(スペース)
 
-// --- グローバル変数 ---
-bool isLightOn = false;
-unsigned long lastChangeTime = 0;
-String currentSymbol = ""; // 受信中のモールス符号 (例: ".-")
-String decodedMessage = ""; // 受信済みメッセージ
+bool isLightOn = false;                          // 光センサーのON/OFF状態
+unsigned long lastChangeTime = 0;                // 最後の状態変化時刻
+String currentSymbol = "";                       // 受信中のモールス符号 (例: ".-")
+String decodedMessage = "";                      // 受信済みメッセージ
 
-// --- モールス符号テーブル ---
 struct MorseMapping {
   const char* code;
   char character;
@@ -58,19 +41,14 @@ void updateDisplay();
 
 void setup() {
   Serial.begin(9600);
-  pinMode(SENSOR_PIN, INPUT);
-
-  // LCD初期化 (16文字x2行)
-  lcd.begin(16, 2);
-  
-  // 起動メッセージ
+  pinMode(SENSOR_PIN, INPUT);                    // 光センサーを入力ピンにする
+  lcd.begin(16, 2);                              // LCDを初期化
   lcd.print("Morse Receiver");
-  lcd.setCursor(0, 1);
+  lcd.setCursor(0, 1);                           // 2行目
   lcd.print("Ready...");
-  delay(1000);
-  lcd.clear();
-  
-  updateDisplay();
+  delay(1000);                                   // 1秒待機
+  lcd.clear();                                   // LCDをクリア
+  updateDisplay();                               // 初期表示
 }
 
 void loop() {
@@ -78,7 +56,6 @@ void loop() {
   unsigned long currentTime = millis();
   bool currentLightState = (sensorValue > LIGHT_THRESHOLD);
 
-  // 状態変化の検出
   if (currentLightState != isLightOn) {
     unsigned long duration = currentTime - lastChangeTime;
     
