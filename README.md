@@ -8,6 +8,7 @@ Sotechコースで作成したArduinoプロジェクトと学習資料です。
 
 ### 2026年
 - [2026年 1月](study_logs/2026-01.md)
+- [2026年 2月](study_logs/2026-02.md)
 
 ## Projects
 
