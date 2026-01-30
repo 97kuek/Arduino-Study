@@ -40,46 +40,4 @@
 
 ### 4.2 フローチャート
 
-```mermaid
-flowchart TD
-    Start([開始]) --> Setup[セットアップ: ピン設定, 変数初期化]
-    Setup --> Loop_Start{ループ開始}
-
-    Loop_Start --> Read_Sensor[光センサー値の読み取り]
-    Read_Sensor --> Check_Threshold{閾値判定}
-
-    %% 光あり (ON) の場合
-    Check_Threshold -- "閾値以上 (ON)" --> Is_State_Changed_On{状態変化?}
-    
-    Is_State_Changed_On -- "OFFからONへ変化" --> Measure_Off_Time[OFF時間の計測終了]
-    Measure_Off_Time --> Reset_Timer_On[ON開始時刻を記録]
-    Reset_Timer_On --> Set_State_On[状態をONに更新]
-    
-    Is_State_Changed_On -- "ON継続中" --> Loop_Start
-
-    %% 光なし (OFF) の場合
-    Check_Threshold -- "閾値未満 (OFF)" --> Is_State_Changed_Off{状態変化?}
-    
-    Is_State_Changed_Off -- "ONからOFFへ変化" --> Measure_On_Time[ON時間の計測終了]
-    Measure_On_Time --> Identify_Signal{長さ判定}
-    Identify_Signal -- "短い (短点)" --> Add_Dot[バッファに'.'追加]
-    Identify_Signal -- "長い (長点)" --> Add_Dash[バッファに'-'追加]
-    
-    Add_Dot --> Reset_Timer_Off[OFF開始時刻を記録]
-    Add_Dash --> Reset_Timer_Off
-    Reset_Timer_Off --> Set_State_Off[状態をOFFに更新]
-    
-    Is_State_Changed_Off -- "OFF継続中" --> Check_Timeout{経過時間確認}
-    
-    Check_Timeout -- "文字区切り時間超過 & 未処理" --> Decode_Char[バッファを文字に変換して表示]
-    Decode_Char --> Clear_Buffer[バッファクリア]
-    Clear_Buffer --> Loop_Start
-    
-    Check_Timeout -- "単語区切り時間超過 & 未処理" --> Insert_Space[スペースを表示]
-    Insert_Space --> Loop_Start
-    
-    Check_Timeout -- "区切り未達" --> Loop_Start
-    
-    Set_State_On --> Loop_Start
-    Set_State_Off --> Loop_Start
-```
+![フローチャート](フローチャート.png)

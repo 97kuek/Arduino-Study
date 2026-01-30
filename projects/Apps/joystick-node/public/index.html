@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Joystick Visualizer</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #222;
+            color: #eee;
+            font-family: sans-serif;
+            flex-direction: column;
+        }
+
+        canvas {
+            background-color: #333;
+            border: 2px solid #555;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+        }
+
+        .status {
+            margin-top: 10px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Joystick Visualizer</h1>
+    <canvas id="gameCanvas" width="600" height="600"></canvas>
+    <div class="status" id="statusText">Waiting for data...</div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const statusText = document.getElementById('statusText');
+
+        let posX = canvas.width / 2;
+        let posY = canvas.height / 2;
+        let isPressed = false;
+
+        // 初期描画
+        draw();
+
+        socket.on('joystick-data', (data) => {
+            // ArduinoのAnalogReadは0-1023。これをCanvas座標にマッピング
+            // ジョイスティックの方向によっては反転が必要な場合も。
+            // ここでは単純にマッピング
+
+            // X: 0 -> 0, 1023 -> canvas.width
+            // ユーザーの向きに合わせて XY を入れ替え (右入力が下になる現象の修正)
+            const targetX = (data.y / 1023) * canvas.width;
+
+            // Y: 0 -> 0, 1023 -> canvas.height
+            // 上下も逆とのことなので反転 (1.0 - ratio)
+            const targetY = (1 - (data.x / 1023)) * canvas.height;
+
+            // スムーズな動きのために補間する (簡易的)
+            posX += (targetX - posX) * 0.2;
+            posY += (targetY - posY) * 0.2;
+
+            isPressed = (data.sw === 0); // Active Low
+
+            statusText.textContent = `X: ${data.x}, Y: ${data.y}, SW: ${data.sw}`;
+
+            draw();
+        });
+
+        function draw() {
+            // 画面クリア
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // グリッド描画 (装飾)
+            ctx.strokeStyle = '#444';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(canvas.width / 2, 0);
+            ctx.lineTo(canvas.width / 2, canvas.height);
+            ctx.moveTo(0, canvas.height / 2);
+            ctx.lineTo(canvas.width, canvas.height / 2);
+            ctx.stroke();
+
+            // ボール描画
+            ctx.beginPath();
+            ctx.arc(posX, posY, 20, 0, Math.PI * 2);
+
+            if (isPressed) {
+                ctx.fillStyle = '#ff4444'; // 押下時: 赤
+                ctx.shadowColor = '#ff4444';
+                ctx.shadowBlur = 20;
+            } else {
+                ctx.fillStyle = '#4488ff'; // 通常時: 青
+                ctx.shadowColor = '#4488ff';
+                ctx.shadowBlur = 15;
+            }
+
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            ctx.closePath();
+        }
+    </script>
+</body>
+
+</html>
