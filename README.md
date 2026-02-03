@@ -1,6 +1,6 @@
 # Arduino
 
-Sotechコースで作成したArduinoプロジェクトと学習資料です。
+個人のArduinoプロジェクトと学習資料です。
 
 ## 学習ログ
 
